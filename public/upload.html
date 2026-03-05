@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Upload your portfolio holdings to simulate the impact of adding a CI investment sleeve.">
+    <title>Import Portfolio | CI Portfolio Impact Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --navy-primary: #0B1F3B;
+            --navy-secondary: #123A63;
+            --navy-light: #1A4A7A;
+            --light-bg: #F6F8FB;
+            --white: #FFFFFF;
+            --border-gray: #E3E8EF;
+            --text-muted: #7A8BA3;
+            --text-body: #3B4A5E;
+            --text-label: #5A6A7E;
+            --shadow-sm: 0 1px 3px rgba(11, 31, 59, 0.06);
+            --shadow-md: 0 4px 16px rgba(11, 31, 59, 0.08);
+            --shadow-lg: 0 12px 40px rgba(11, 31, 59, 0.12);
+            --radius: 14px;
+            --radius-sm: 10px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--light-bg);
+            color: var(--text-body);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            background: var(--navy-primary);
+            padding: 0 32px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #3B82F6, #06B6D4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+            color: var(--white);
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .header-brand {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--white);
+            letter-spacing: -0.2px;
+        }
+
+        .header-right {
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .header-right a {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        .header-right a:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* ========== PAGE BODY ========== */
+        .page-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+        }
+
+        /* ========== MAIN CARD ========== */
+        .main-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-gray);
+            box-shadow: var(--shadow-lg);
+            max-width: 880px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 760px) {
+            .main-card {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========== LEFT COLUMN ========== */
+        .col-left {
+            padding: 40px;
+        }
+
+        .col-left h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--navy-primary);
+            letter-spacing: -0.4px;
+            margin-bottom: 8px;
+        }
+
+        .col-left .subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        /* ---- Label ---- */
+        .field-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-label);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        /* ---- Textarea ---- */
+        .portfolio-textarea {
+            width: 100%;
+            height: 180px;
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--navy-primary);
+            background: var(--light-bg);
+            resize: vertical;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            line-height: 1.7;
+        }
+
+        .portfolio-textarea::placeholder {
+            color: #A0AEC0;
+        }
+
+        .portfolio-textarea:focus {
+            outline: none;
+            border-color: var(--navy-secondary);
+            box-shadow: 0 0 0 3px rgba(18, 58, 99, 0.08);
+            background: var(--white);
+        }
+
+        /* ---- Helper text ---- */
+        .field-helper {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* ---- Separator ---- */
+        .separator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .separator::before,
+        .separator::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-gray);
+        }
+
+        .separator span {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* ---- Buttons ---- */
+        .btn-upload-csv {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-label);
+            background: var(--white);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-sm);
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all var(--transition);
+            margin-bottom: 24px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-upload-csv:hover {
+            background: var(--light-bg);
+            border-color: #CBD5E1;
+        }
+
+        .btn-upload-csv svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--text-muted);
+        }
+
+        .sleeve-picker {
+            margin-bottom: 24px;
+        }
+
+        .sleeve-picker label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-label);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .sleeve-select {
+            width: 100%;
+            padding: 10px 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--navy-primary);
+            background: var(--light-bg);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A8BA3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+
+        .sleeve-select:focus {
+            outline: none;
+            border-color: var(--navy-secondary);
+            box-shadow: 0 0 0 3px rgba(18, 58, 99, 0.08);
+            background-color: var(--white);
+        }
+
+        .btn-run {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--white);
+            background: var(--navy-primary);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 14px 24px;
+            cursor: pointer;
+            transition: all var(--transition);
+            letter-spacing: -0.1px;
+        }
+
+        .btn-run:hover {
+            background: var(--navy-secondary);
+            box-shadow: 0 6px 20px rgba(11, 31, 59, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-run:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(11, 31, 59, 0.2);
+        }
+
+        .btn-run .arrow {
+            transition: transform var(--transition);
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .btn-run:hover .arrow {
+            transform: translateX(3px);
+        }
+
+        /* Hidden file input */
+        .file-input-hidden {
+            display: none;
+        }
+
+        /* ========== RIGHT COLUMN ========== */
+        .col-right {
+            background: var(--light-bg);
+            border-left: 1px solid var(--border-gray);
+            padding: 40px 32px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 760px) {
+            .col-right {
+                border-left: none;
+                border-top: 1px solid var(--border-gray);
+            }
+        }
+
+        .col-right h2 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--navy-primary);
+            margin-bottom: 18px;
+            letter-spacing: -0.2px;
+        }
+
+        .disclaimer-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 32px;
+        }
+
+        .disclaimer-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-body);
+            line-height: 1.55;
+        }
+
+        .disclaimer-list li .bullet {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--navy-secondary);
+            flex-shrink: 0;
+            margin-top: 7px;
+            opacity: 0.5;
+        }
+
+        /* ---- Mode Badge ---- */
+        .mode-indicator {
+            margin-top: auto;
+            background: var(--white);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+        }
+
+        .mode-indicator .mode-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+        }
+
+        .mode-indicator .mode-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--navy-primary);
+            letter-spacing: -0.1px;
+        }
+
+        .mode-indicator .mode-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mode-indicator .mode-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .mode-dot.etf {
+            background: #3B82F6;
+        }
+
+        .mode-dot.private {
+            background: #10B981;
+        }
+
+        /* ========== FOOTER ========== */
+        .site-footer {
+            text-align: center;
+            padding: 20px 24px;
+            font-size: 11px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-gray);
+            background: var(--white);
+            flex-shrink: 0;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 760px) {
+            .header {
+                padding: 0 18px;
+            }
+
+            .header-brand {
+                font-size: 14px;
+            }
+
+            .col-left {
+                padding: 28px 24px;
+            }
+
+            .col-right {
+                padding: 28px 24px;
+            }
+
+            .page-body {
+                padding: 24px 16px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header" id="main-header">
+        <div class="header-left">
+            <div class="logo-mark">CI</div>
+            <span class="header-brand">CI Global Asset Management</span>
+        </div>
+        <div class="header-right">
+            <a href="/home.html">Portfolio Impact Simulator</a>
+        </div>
+    </header>
+
+    <!-- PAGE BODY -->
+    <div class="page-body">
+        <div class="main-card" id="main-card">
+
+            <!-- LEFT COLUMN -->
+            <div class="col-left">
+                <h1>Import your portfolio</h1>
+                <p class="subtitle">Paste holdings or upload a CSV to simulate the impact of adding a CI investment
+                    sleeve.</p>
+
+                <label class="field-label" for="portfolio-input">Holdings</label>
+                <textarea class="portfolio-textarea" id="portfolio-input"
+                    placeholder="AAPL, 40%&#10;MSFT, 30%&#10;VTI, 30%" spellcheck="false"></textarea>
+                <p class="field-helper">Enter one holding per line: <strong>Ticker, Weight%</strong></p>
+
+                <div class="separator"><span>or</span></div>
+
+                <input type="file" class="file-input-hidden" id="csv-file-input" accept=".csv">
+                <button class="btn-upload-csv" id="btn-upload-csv"
+                    onclick="document.getElementById('csv-file-input').click()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    Upload CSV
+                </button>
+
+                <div class="sleeve-picker" id="sleeve-picker" style="display:none">
+                    <label for="sleeve-select">Sleeve Ticker</label>
+                    <select class="sleeve-select" id="sleeve-select">
+                        <option value="SPY">SPY — US Equity Proxy</option>
+                        <option value="CCCX.B">CCCX.B — CI Galaxy Core Multi-Crypto ETF</option>
+                    </select>
+                </div>
+
+                <button class="btn-run" id="btn-run" onclick="runSimulation()">
+                    Run Simulation
+                    <span class="arrow">→</span>
+                </button>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="col-right">
+                <h2>Important Information</h2>
+                <ul class="disclaimer-list">
+                    <li><span class="bullet"></span><span>Educational simulation only</span></li>
+                    <li><span class="bullet"></span><span>No portfolio data is stored</span></li>
+                    <li><span class="bullet"></span><span>Results use assumptions and proxies</span></li>
+                    <li><span class="bullet"></span><span>Not investment advice</span></li>
+                </ul>
+
+                <div class="mode-indicator" id="mode-indicator">
+                    <div class="mode-label">Active Simulation</div>
+                    <div class="mode-value">
+                        <span class="mode-icon">
+                            <span class="mode-dot" id="mode-dot"></span>
+                            <span id="mode-text"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer" id="site-footer">
+        This prototype is for demonstration purposes only.
+    </footer>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode') === 'private' ? 'private' : 'etf';
+
+        const dot = document.getElementById('mode-dot');
+        const text = document.getElementById('mode-text');
+        if (mode === 'private') {
+            dot.classList.add('private');
+            text.textContent = 'Private Markets Sleeve (modeled)';
+        } else {
+            dot.classList.add('etf');
+            text.textContent = 'Public Market ETF Sleeve';
+            document.getElementById('sleeve-picker').style.display = 'block';
+        }
+
+        /* ---- CSV upload: read file into textarea ---- */
+        document.getElementById('csv-file-input').addEventListener('change', function (e) {
+            if (e.target.files.length === 0) return;
+            const file = e.target.files[0];
+            const btn = document.getElementById('btn-upload-csv');
+            btn.innerHTML =
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">' +
+                '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> ' +
+                file.name;
+            btn.style.color = '#0B1F3B';
+            btn.style.borderColor = '#0B1F3B';
+
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                const lines = evt.target.result.trim().split('\n');
+                const rows = [];
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    const cols = line.split(',').map(function (c) { return c.trim(); });
+                    if (cols.length < 2) continue;
+                    const ticker = cols[0];
+                    if (/^ticker$/i.test(ticker)) continue;
+                    const weight = cols[1];
+                    rows.push(ticker + ', ' + weight);
+                }
+                if (rows.length > 0) {
+                    document.getElementById('portfolio-input').value = rows.join('\n');
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        /* ---- Parse textarea into holdings array ---- */
+        function parseHoldings() {
+            const raw = document.getElementById('portfolio-input').value.trim();
+            if (!raw) return { error: 'Please enter at least one holding.' };
+
+            const lines = raw.split('\n').filter(function (l) { return l.trim(); });
+            const holdings = [];
+            const tickerRe = /^[A-Za-z0-9.\-]+$/;
+
+            for (let i = 0; i < lines.length; i++) {
+                const parts = lines[i].split(/[,\t]+/).map(function (s) { return s.trim(); });
+                if (parts.length < 2) return { error: 'Line ' + (i + 1) + ': expected "Ticker, Weight%"' };
+
+                const ticker = parts[0].toUpperCase();
+                if (!tickerRe.test(ticker)) return { error: 'Line ' + (i + 1) + ': invalid ticker "' + ticker + '"' };
+
+                let weightStr = parts[1].replace('%', '').trim();
+                let weight = parseFloat(weightStr);
+                if (isNaN(weight) || weight <= 0) return { error: 'Line ' + (i + 1) + ': invalid weight' };
+
+                if (weight > 1) weight = weight / 100;
+                holdings.push({ ticker: ticker, weight: weight });
+            }
+
+            const sum = holdings.reduce(function (s, h) { return s + h.weight; }, 0);
+            if (Math.abs(sum - 1) > 0.02) {
+                return { error: 'Weights sum to ' + (sum * 100).toFixed(1) + '% — they must add up to ~100%.' };
+            }
+
+            return { holdings: holdings };
+        }
+
+        /* ---- Run simulation ---- */
+        async function runSimulation() {
+            const parsed = parseHoldings();
+            if (parsed.error) {
+                alert(parsed.error);
+                return;
+            }
+
+            const btn = document.getElementById('btn-run');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px">' +
+                '<svg width="18" height="18" viewBox="0 0 24 24" style="animation:spin 1s linear infinite">' +
+                '<circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="3" fill="none"/>' +
+                '<path d="M12 2a10 10 0 0 1 10 10" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+                '</svg> Running\u2026</span>';
+            btn.style.opacity = '0.75';
+
+            try {
+                const body = {
+                    mode: mode,
+                    holdings: parsed.holdings
+                };
+                if (mode === 'etf') body.sleeveTicker = document.getElementById('sleeve-select').value;
+
+                const res = await fetch('/api/simulate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || 'Simulation failed (HTTP ' + res.status + ')');
+                }
+
+                localStorage.setItem('simulationResult', JSON.stringify(data));
+                window.location.href = 'results.html?mode=' + mode;
+            } catch (err) {
+                alert('Simulation error: ' + err.message);
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                btn.style.opacity = '1';
+            }
+        }
+    </script>
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <script src="/widgets/csv-widget.js" defer></script>
+
+</body>
+
+</html>

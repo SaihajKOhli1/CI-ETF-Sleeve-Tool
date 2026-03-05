@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Simulation results – compare your baseline portfolio against a CI investment sleeve allocation.">
+    <title>Simulation Results | CI Portfolio Impact Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --navy-primary: #0B1F3B;
+            --navy-secondary: #123A63;
+            --navy-light: #1A4A7A;
+            --light-bg: #F6F8FB;
+            --white: #FFFFFF;
+            --border-gray: #E3E8EF;
+            --text-muted: #7A8BA3;
+            --text-body: #3B4A5E;
+            --text-label: #5A6A7E;
+            --accent-blue: #3B82F6;
+            --accent-cyan: #06B6D4;
+            --accent-green: #10B981;
+            --accent-amber: #F59E0B;
+            --baseline-gray: #94A3B8;
+            --shadow-sm: 0 1px 3px rgba(11, 31, 59, 0.06);
+            --shadow-md: 0 4px 16px rgba(11, 31, 59, 0.08);
+            --shadow-lg: 0 12px 40px rgba(11, 31, 59, 0.12);
+            --radius: 14px;
+            --radius-sm: 10px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--light-bg);
+            color: var(--text-body);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            background: var(--navy-primary);
+            padding: 0 32px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .logo-mark {
+            width: 34px; height: 34px; border-radius: 8px;
+            background: linear-gradient(135deg, #3B82F6, #06B6D4);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 13px; color: var(--white);
+            letter-spacing: 0.5px; flex-shrink: 0;
+        }
+        .header-brand { font-size: 15px; font-weight: 600; color: var(--white); letter-spacing: -0.2px; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .header-mode-badge {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+            text-transform: uppercase; padding: 4px 10px; border-radius: 20px;
+        }
+        .header-mode-badge.etf { color: var(--accent-blue); background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.2); }
+        .header-mode-badge.private { color: var(--accent-green); background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.2); }
+        .header-link { font-size: 13px; color: rgba(255,255,255,0.5); text-decoration: none; transition: color var(--transition); }
+        .header-link:hover { color: rgba(255,255,255,0.85); }
+
+        /* ========== BANNERS ========== */
+        .banner {
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .banner.visible { display: block; }
+        .banner.error {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            color: #991B1B;
+        }
+        .banner.warning {
+            background: #EFF3F9;
+            border: 1px solid var(--navy-secondary, #123A63);
+            color: var(--navy-primary, #0B1F3B);
+        }
+        .banner strong { font-weight: 700; }
+        .banner ul { margin: 6px 0 0 18px; }
+        .banner ul li { margin-bottom: 2px; }
+
+        /* ========== PAGE CONTENT ========== */
+        .page-content {
+            flex: 1; max-width: 1060px; width: 100%;
+            margin: 0 auto; padding: 32px 24px 48px;
+        }
+
+        /* ========== PAGE TITLE ========== */
+        .page-title-row { margin-bottom: 28px; }
+        .page-title-row h1 { font-size: 24px; font-weight: 800; color: var(--navy-primary); letter-spacing: -0.5px; margin-bottom: 4px; }
+        .page-title-row p { font-size: 14px; color: var(--text-muted); }
+
+        /* ========== SUMMARY BAR ========== */
+        .summary-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 700px) { .summary-bar { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 440px) { .summary-bar { grid-template-columns: 1fr; } }
+
+        .metric-card {
+            background: var(--white);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 3px; height: 100%;
+            border-radius: var(--radius) 0 0 var(--radius);
+        }
+        .metric-card:nth-child(1)::before { background: var(--accent-blue); }
+        .metric-card:nth-child(2)::before { background: var(--accent-cyan); }
+        .metric-card:nth-child(3)::before { background: #EF4444; }
+        .metric-card:nth-child(4)::before { background: var(--accent-green); }
+
+        .metric-label {
+            font-size: 10px; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px;
+        }
+        .metric-pair { display: flex; gap: 16px; align-items: flex-end; }
+        .metric-col { display: flex; flex-direction: column; gap: 2px; }
+        .metric-col-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+        .metric-col-label.sleeve { color: var(--navy-primary); }
+        .metric-col-value { font-size: 22px; font-weight: 800; color: var(--baseline-gray); letter-spacing: -0.5px; line-height: 1; }
+        .metric-col-value.sleeve { color: var(--navy-primary); }
+        .metric-delta {
+            font-size: 11px; font-weight: 600;
+            padding: 2px 7px; border-radius: 5px;
+            margin-left: auto; align-self: center; white-space: nowrap;
+        }
+        .metric-delta.positive { color: #047857; background: rgba(16, 185, 129, 0.1); }
+        .metric-delta.negative { color: #B45309; background: rgba(245, 158, 11, 0.1); }
+        .metric-delta.neutral { color: var(--text-muted); background: var(--light-bg); }
+
+        /* ========== MAIN GRID ========== */
+        .main-grid {
+            display: grid; grid-template-columns: 1fr 320px;
+            gap: 24px; margin-bottom: 32px;
+        }
+        @media (max-width: 800px) { .main-grid { grid-template-columns: 1fr; } }
+
+        /* ========== CHART PANEL ========== */
+        .chart-panel {
+            background: var(--white); border: 1px solid var(--border-gray);
+            border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 28px;
+        }
+        .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .panel-header h2 { font-size: 17px; font-weight: 700; color: var(--navy-primary); letter-spacing: -0.2px; }
+        .chart-container { width: 100%; height: 320px; position: relative; margin-bottom: 20px; }
+
+        .tv-tooltip {
+            display: none;
+            position: absolute;
+            z-index: 10;
+            background: var(--white);
+            border: 1px solid var(--border-gray);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: var(--text-body);
+            box-shadow: var(--shadow-md);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .tv-tooltip .tt-date {
+            font-weight: 600;
+            color: var(--navy-primary);
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+        .tv-tooltip .tt-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+        .tv-tooltip .tt-row:last-child { margin-bottom: 0; }
+        .tv-tooltip .tt-swatch {
+            width: 12px;
+            height: 3px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .tv-tooltip .tt-swatch.baseline { background: var(--baseline-gray); }
+        .tv-tooltip .tt-swatch.sleeve { background: var(--navy-primary); }
+        .chart-legend { display: flex; align-items: center; gap: 24px; padding-top: 16px; border-top: 1px solid var(--border-gray); flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-body); }
+        .legend-swatch { width: 14px; height: 3px; border-radius: 2px; }
+        .legend-swatch.baseline { background: var(--baseline-gray); }
+        .legend-swatch.ci-sleeve { background: var(--navy-primary); }
+
+        /* ========== RIGHT PANEL ========== */
+        .right-panel {
+            display: flex; flex-direction: column; gap: 20px;
+        }
+
+        .panel-card {
+            background: var(--white); border: 1px solid var(--border-gray);
+            border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 24px;
+        }
+        .panel-card h3 {
+            font-size: 15px; font-weight: 700; color: var(--navy-primary);
+            letter-spacing: -0.2px; margin-bottom: 16px;
+        }
+
+        /* Sleeve details */
+        .sleeve-weight-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 12px; margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-gray);
+        }
+        .sleeve-weight-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+        .sleeve-weight-value { font-size: 18px; font-weight: 800; color: var(--navy-primary); }
+        .tickers-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .ticker-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+        .ticker-pill {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 12px; font-weight: 600; color: var(--navy-primary);
+            background: var(--light-bg); border: 1px solid var(--border-gray);
+            border-radius: 6px; padding: 5px 10px;
+        }
+        .ticker-pill .pill-weight { color: var(--text-muted); font-weight: 500; }
+
+        /* Insights */
+        .insights-list { list-style: none; display: flex; flex-direction: column; gap: 0; }
+        .insights-list li {
+            display: flex; align-items: flex-start; gap: 12px;
+            font-size: 13px; color: var(--text-body); line-height: 1.55;
+            padding: 12px 0; border-bottom: 1px solid var(--border-gray);
+        }
+        .insights-list li:last-child { border-bottom: none; }
+        .insight-icon {
+            width: 26px; height: 26px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; font-size: 13px;
+        }
+        .insight-icon.i1 { background: rgba(59, 130, 246, 0.08); }
+        .insight-icon.i2 { background: rgba(6, 182, 212, 0.08); }
+        .insight-icon.i3 { background: rgba(16, 185, 129, 0.08); }
+        .insight-icon.i4 { background: rgba(245, 158, 11, 0.08); }
+        .insight-icon.i5 { background: rgba(139, 92, 246, 0.08); }
+
+        .insights-loading {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 13px; color: var(--text-muted); font-weight: 500;
+            padding: 16px 0;
+        }
+        .insights-loading svg {
+            width: 16px; height: 16px;
+            animation: spin-insight 1s linear infinite;
+        }
+        @keyframes spin-insight { to { transform: rotate(360deg); } }
+
+        .mode-insight {
+            margin-top: 8px; background: var(--light-bg);
+            border: 1px solid var(--border-gray); border-radius: var(--radius-sm);
+            padding: 12px 14px; font-size: 12px; color: var(--navy-secondary);
+            font-weight: 500; line-height: 1.5;
+            display: flex; align-items: flex-start; gap: 10px;
+        }
+        .mode-insight .mode-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+        .mode-dot.etf { background: var(--accent-blue); }
+        .mode-dot.private { background: var(--accent-green); }
+
+        /* ========== MARKET CHART ========== */
+        .market-chart-card {
+            background: var(--white);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+        .market-chart-card .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .market-chart-card .panel-header h2 { font-size: 17px; font-weight: 700; color: var(--navy-primary); letter-spacing: -0.2px; }
+        .market-chart-card .tv-symbol-badge {
+            font-size: 11px; font-weight: 600; color: var(--accent-blue);
+            background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.15);
+            padding: 4px 10px; border-radius: 6px; letter-spacing: 0.3px;
+        }
+        #tv_container { width: 100%; height: 420px; border-radius: 10px; overflow: hidden; }
+        @media (max-width: 800px) { #tv_container { height: 320px; } }
+
+        /* ========== BOTTOM BUTTONS ========== */
+        .bottom-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        @media (max-width: 500px) { .bottom-actions { flex-direction: column; } }
+        .btn-secondary {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+            color: var(--navy-primary); background: var(--white);
+            border: 1px solid var(--border-gray); border-radius: var(--radius-sm);
+            padding: 12px 24px; cursor: pointer; transition: all var(--transition); text-decoration: none;
+        }
+        .btn-secondary:hover { background: var(--light-bg); border-color: #CBD5E1; box-shadow: var(--shadow-sm); }
+        .btn-secondary svg { width: 16px; height: 16px; stroke: var(--text-muted); }
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
+            color: var(--white); background: var(--navy-primary); border: none;
+            border-radius: var(--radius-sm); padding: 12px 24px;
+            cursor: pointer; transition: all var(--transition); text-decoration: none;
+        }
+        .btn-primary:hover { background: var(--navy-secondary); box-shadow: 0 6px 20px rgba(11,31,59,0.25); transform: translateY(-1px); }
+        .btn-primary .arrow { transition: transform var(--transition); }
+        .btn-primary:hover .arrow { transform: translateX(3px); }
+
+        /* ========== FOOTER ========== */
+        .site-footer {
+            text-align: center; padding: 20px 24px; font-size: 11px;
+            color: var(--text-muted); border-top: 1px solid var(--border-gray);
+            background: var(--white); flex-shrink: 0;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 800px) {
+            .header { padding: 0 18px; }
+            .page-content { padding: 24px 16px 40px; }
+            .chart-container { height: 260px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-mark">CI</div>
+            <span class="header-brand">Simulation Results</span>
+        </div>
+        <div class="header-right">
+            <span class="header-mode-badge" id="header-badge"></span>
+            <a class="header-link" href="/home.html">Home</a>
+        </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+
+        <!-- TITLE -->
+        <div class="page-title-row">
+            <h1>Portfolio Impact Analysis</h1>
+            <p id="page-subtitle"></p>
+        </div>
+
+        <!-- BANNERS -->
+        <div class="banner error" id="no-data-banner">
+            <strong>No simulation found.</strong> Please <a href="upload.html">go back to upload</a> and run a simulation first.
+        </div>
+        <div class="banner warning" id="warnings-banner"></div>
+
+        <!-- SUMMARY BAR (4 metrics) -->
+        <div class="summary-bar" id="summary-bar">
+            <div class="metric-card" id="mc-cagr">
+                <div class="metric-label">CAGR</div>
+                <div class="metric-pair">
+                    <div class="metric-col">
+                        <div class="metric-col-label">Baseline</div>
+                        <div class="metric-col-value" id="v-cagr-base">—</div>
+                    </div>
+                    <div class="metric-col">
+                        <div class="metric-col-label sleeve">Sleeve</div>
+                        <div class="metric-col-value sleeve" id="v-cagr-sleeve">—</div>
+                    </div>
+                    <span class="metric-delta neutral" id="d-cagr"></span>
+                </div>
+            </div>
+            <div class="metric-card" id="mc-vol">
+                <div class="metric-label">Volatility</div>
+                <div class="metric-pair">
+                    <div class="metric-col">
+                        <div class="metric-col-label">Baseline</div>
+                        <div class="metric-col-value" id="v-vol-base">—</div>
+                    </div>
+                    <div class="metric-col">
+                        <div class="metric-col-label sleeve">Sleeve</div>
+                        <div class="metric-col-value sleeve" id="v-vol-sleeve">—</div>
+                    </div>
+                    <span class="metric-delta neutral" id="d-vol"></span>
+                </div>
+            </div>
+            <div class="metric-card" id="mc-dd">
+                <div class="metric-label">Max Drawdown</div>
+                <div class="metric-pair">
+                    <div class="metric-col">
+                        <div class="metric-col-label">Baseline</div>
+                        <div class="metric-col-value" id="v-dd-base">—</div>
+                    </div>
+                    <div class="metric-col">
+                        <div class="metric-col-label sleeve">Sleeve</div>
+                        <div class="metric-col-value sleeve" id="v-dd-sleeve">—</div>
+                    </div>
+                    <span class="metric-delta neutral" id="d-dd"></span>
+                </div>
+            </div>
+            <div class="metric-card" id="mc-sharpe">
+                <div class="metric-label">Sharpe Ratio</div>
+                <div class="metric-pair">
+                    <div class="metric-col">
+                        <div class="metric-col-label">Baseline</div>
+                        <div class="metric-col-value" id="v-sharpe-base">—</div>
+                    </div>
+                    <div class="metric-col">
+                        <div class="metric-col-label sleeve">Sleeve</div>
+                        <div class="metric-col-value sleeve" id="v-sharpe-sleeve">—</div>
+                    </div>
+                    <span class="metric-delta neutral" id="d-sharpe"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="main-grid">
+
+            <!-- CHART PANEL -->
+            <div class="chart-panel" id="chart-panel">
+                <div class="panel-header">
+                    <h2>Portfolio Comparison (Growth of $100)</h2>
+                </div>
+
+                <div class="chart-container" id="chart-container">
+                    <div id="tv-chart" style="width:100%;height:100%"></div>
+                    <div class="tv-tooltip" id="tv-tooltip">
+                        <div class="tt-date" id="tt-date"></div>
+                        <div class="tt-row">
+                            <span class="tt-swatch baseline"></span>
+                            <span>Baseline:</span>
+                            <strong id="tt-baseline"></strong>
+                        </div>
+                        <div class="tt-row">
+                            <span class="tt-swatch sleeve"></span>
+                            <span>Sleeve:</span>
+                            <strong id="tt-sleeve"></strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-legend" id="chart-legend">
+                    <div class="legend-item">
+                        <span class="legend-swatch baseline"></span>
+                        <span id="legend-baseline-label">Baseline</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-swatch ci-sleeve"></span>
+                        <span id="legend-sleeve-label">With CI Allocation</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div class="right-panel">
+
+                <!-- SLEEVE DETAILS -->
+                <div class="panel-card" id="sleeve-details-panel">
+                    <h3>Sleeve Details</h3>
+                    <div class="sleeve-weight-row">
+                        <span class="sleeve-weight-label">Sleeve Weight</span>
+                        <span class="sleeve-weight-value" id="sleeve-weight-value">15%</span>
+                    </div>
+                    <div class="tickers-label">Tickers Used</div>
+                    <div class="ticker-pills" id="ticker-pills"></div>
+                </div>
+
+                <!-- KEY INSIGHTS -->
+                <div class="panel-card">
+                    <h3>Key Insights</h3>
+                    <div class="insights-loading" id="insights-loading" style="display:none">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="12" cy="12" r="10" stroke="rgba(122,139,163,0.25)" />
+                            <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--text-muted)" stroke-linecap="round" />
+                        </svg>
+                        Generating insights…
+                    </div>
+                    <ul class="insights-list" id="insights-list">
+                        <li>
+                            <span class="insight-icon i1">📊</span>
+                            <span>Improved diversification across asset classes</span>
+                        </li>
+                        <li>
+                            <span class="insight-icon i2">🔗</span>
+                            <span>Lower correlation to public equities</span>
+                        </li>
+                        <li>
+                            <span class="insight-icon i3">📈</span>
+                            <span>Potential risk-adjusted return improvement</span>
+                        </li>
+                        <li>
+                            <span class="insight-icon i4">⚖️</span>
+                            <span>Allocation impact depends on sleeve size</span>
+                        </li>
+                    </ul>
+                    <div class="mode-insight" id="mode-insight">
+                        <span class="mode-dot" id="insight-dot"></span>
+                        <span id="insight-text"></span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- MARKET CHART -->
+        <div class="market-chart-card" id="market-chart-card" style="display:none">
+            <div class="panel-header">
+                <h2>Market Chart (TradingView)</h2>
+                <span class="tv-symbol-badge" id="tv-symbol-badge"></span>
+            </div>
+            <div id="tv_container"></div>
+        </div>
+
+        <!-- BOTTOM ACTIONS -->
+        <div class="bottom-actions">
+            <a class="btn-secondary" href="/home.html" id="btn-home">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5" /><polyline points="12 19 5 12 12 5" />
+                </svg>
+                Back to Home
+            </a>
+            <a class="btn-primary" href="" id="btn-rerun">
+                Run Another Simulation
+                <span class="arrow">→</span>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        This prototype is for demonstration purposes only.
+    </footer>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        /* ============================================================
+           MODE & CHROME
+           ============================================================ */
+        var params = new URLSearchParams(window.location.search);
+        var mode = params.get('mode') === 'private' ? 'private' : 'etf';
+
+        var badge = document.getElementById('header-badge');
+        badge.classList.add(mode);
+        badge.textContent = mode === 'private' ? 'Private Markets' : 'ETF Sleeve';
+
+        document.getElementById('page-subtitle').textContent =
+            mode === 'private'
+                ? 'Comparing your baseline portfolio with a CI Private Markets proxy sleeve.'
+                : 'Comparing your baseline portfolio with a CI ETF sleeve allocation.';
+
+        var insightDot = document.getElementById('insight-dot');
+        var insightText = document.getElementById('insight-text');
+        insightDot.classList.add(mode);
+        insightText.textContent =
+            mode === 'private'
+                ? 'Private markets exposure introduces alternative return drivers.'
+                : 'ETF sleeve provides liquid diversification exposure.';
+
+        document.getElementById('btn-rerun').href = 'upload.html?mode=' + mode;
+
+        /* ============================================================
+           DATA LAYER
+           ============================================================ */
+        var simData = null;
+        var baselineValues = [];
+        var sleeveValues = [];
+        var simDates = [];
+        var hasData = false;
+
+        (function loadData() {
+            var raw = localStorage.getItem('simulationResult');
+            if (!raw) {
+                document.getElementById('no-data-banner').classList.add('visible');
+                return;
+            }
+            try { simData = JSON.parse(raw); } catch (e) {
+                document.getElementById('no-data-banner').classList.add('visible');
+                return;
+            }
+            if (!simData || !simData.series) {
+                document.getElementById('no-data-banner').classList.add('visible');
+                return;
+            }
+            hasData = true;
+            simData.series.baseline.forEach(function (p) { baselineValues.push(p.value); });
+            simData.series.sleeve.forEach(function (p) { sleeveValues.push(p.value); });
+            simDates = simData.series.baseline.map(function (p) { return p.date; });
+        })();
+
+        /* ============================================================
+           WARNINGS BANNER
+           ============================================================ */
+        if (hasData && simData.warnings && simData.warnings.length > 0) {
+            var wb = document.getElementById('warnings-banner');
+            var html = '<strong>Data warnings:</strong><ul>';
+            simData.warnings.forEach(function (w) { html += '<li>' + w + '</li>'; });
+            html += '</ul>';
+            wb.innerHTML = html;
+            wb.classList.add('visible');
+        }
+
+        /* ============================================================
+           METRICS — use server-provided values
+           ============================================================ */
+        function pct1(v) { return (v * 100).toFixed(1) + '%'; }
+        function num2(v) { return v.toFixed(2); }
+
+        function fillMetric(baseEl, sleeveEl, deltaEl, bVal, sVal, fmt, higherIsBetter) {
+            baseEl.textContent = fmt(bVal);
+            sleeveEl.textContent = fmt(sVal);
+            var diff = sVal - bVal;
+            var diffStr = (diff >= 0 ? '+' : '') + fmt(diff);
+            deltaEl.textContent = diffStr;
+            var isGood = higherIsBetter ? diff >= 0 : diff <= 0;
+            deltaEl.className = 'metric-delta ' + (Math.abs(diff) < 0.0001 ? 'neutral' : isGood ? 'positive' : 'negative');
+        }
+
+        if (hasData && simData.metrics) {
+            var bm = simData.metrics.baseline;
+            var sm = simData.metrics.sleeve;
+
+            fillMetric(
+                document.getElementById('v-cagr-base'), document.getElementById('v-cagr-sleeve'),
+                document.getElementById('d-cagr'), bm.cagr, sm.cagr, pct1, true
+            );
+            fillMetric(
+                document.getElementById('v-vol-base'), document.getElementById('v-vol-sleeve'),
+                document.getElementById('d-vol'), bm.vol, sm.vol, pct1, false
+            );
+            fillMetric(
+                document.getElementById('v-dd-base'), document.getElementById('v-dd-sleeve'),
+                document.getElementById('d-dd'), bm.maxDrawdown, sm.maxDrawdown, pct1, false
+            );
+            fillMetric(
+                document.getElementById('v-sharpe-base'), document.getElementById('v-sharpe-sleeve'),
+                document.getElementById('d-sharpe'), bm.sharpe, sm.sharpe, num2, true
+            );
+        }
+
+        /* ============================================================
+           SLEEVE DETAILS
+           ============================================================ */
+        if (hasData && simData.sleeveMeta) {
+            var sm = simData.sleeveMeta;
+            document.getElementById('sleeve-weight-value').textContent = (sm.sleeveWeight * 100).toFixed(0) + '%';
+
+            var pillsEl = document.getElementById('ticker-pills');
+            sm.tickersUsed.forEach(function (t) {
+                var pill = document.createElement('span');
+                pill.className = 'ticker-pill';
+                pill.innerHTML = t.ticker + ' <span class="pill-weight">' + (t.weight * 100).toFixed(0) + '%</span>';
+                pillsEl.appendChild(pill);
+            });
+
+            /* Legend labels */
+            if (sm.type === 'etf' && sm.tickersUsed.length === 1) {
+                document.getElementById('legend-sleeve-label').textContent =
+                    'With ETF Sleeve (' + sm.tickersUsed[0].ticker + ')';
+            } else if (sm.type === 'private_proxy') {
+                document.getElementById('legend-sleeve-label').textContent =
+                    'With Private Markets Proxy Sleeve';
+            }
+        }
+
+        /* ============================================================
+           TRADINGVIEW ADVANCED CHART
+           ============================================================ */
+        function renderTradingView(symbol) {
+            var card = document.getElementById('market-chart-card');
+            var container = document.getElementById('tv_container');
+            var badge = document.getElementById('tv-symbol-badge');
+
+            card.style.display = 'block';
+            badge.textContent = symbol;
+            container.innerHTML = '';
+
+            var script = document.createElement('script');
+            script.src = 'https://s3.tradingview.com/tv.js';
+            script.onload = function () {
+                new TradingView.widget({
+                    container_id: 'tv_container',
+                    autosize: true,
+                    symbol: symbol,
+                    interval: 'D',
+                    timezone: 'America/New_York',
+                    theme: 'light',
+                    style: '1',
+                    locale: 'en',
+                    toolbar_bg: '#FFFFFF',
+                    enable_publishing: false,
+                    hide_top_toolbar: false,
+                    hide_legend: false,
+                    save_image: false,
+                    allow_symbol_change: false,
+                    withdateranges: true,
+                    details: false,
+                    calendar: false
+                });
+            };
+            document.head.appendChild(script);
+        }
+
+        (function initMarketChart() {
+            if (!hasData || !simData.sleeveMeta) return;
+            var meta = simData.sleeveMeta;
+            var ticker = 'SPY';
+
+            if (meta.tickersUsed && meta.tickersUsed.length > 0) {
+                ticker = meta.tickersUsed[0].ticker;
+            }
+
+            if (ticker.indexOf('.') !== -1) {
+                var stripped = ticker.split('.')[0];
+                renderTradingView(ticker);
+
+                setTimeout(function () {
+                    var iframe = document.querySelector('#tv_container iframe');
+                    if (!iframe) {
+                        renderTradingView(stripped);
+                    }
+                }, 5000);
+            } else {
+                renderTradingView(ticker);
+            }
+        })();
+
+        /* ============================================================
+           AI INSIGHTS
+           ============================================================ */
+        (function fetchInsights() {
+            if (!hasData || !simData.metrics || !simData.sleeveMeta) return;
+
+            var loadingEl = document.getElementById('insights-loading');
+            var listEl = document.getElementById('insights-list');
+            loadingEl.style.display = 'flex';
+
+            var icons = ['📊', '🔗', '📈', '⚖️', '🎯'];
+            var iconClasses = ['i1', 'i2', 'i3', 'i4', 'i5'];
+
+            fetch('/api/insights', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    baselineMetrics: simData.metrics.baseline,
+                    sleeveMetrics: simData.metrics.sleeve,
+                    sleeveMeta: simData.sleeveMeta
+                })
+            })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (!data.insights || !Array.isArray(data.insights) || data.insights.length === 0) return;
+
+                listEl.innerHTML = '';
+                data.insights.forEach(function (text, idx) {
+                    var li = document.createElement('li');
+                    var iconIdx = idx % icons.length;
+                    li.innerHTML =
+                        '<span class="insight-icon ' + iconClasses[iconIdx] + '">' + icons[iconIdx] + '</span>' +
+                        '<span>' + text + '</span>';
+                    listEl.appendChild(li);
+                });
+            })
+            .catch(function () {
+                /* keep static fallback */
+            })
+            .finally(function () {
+                loadingEl.style.display = 'none';
+            });
+        })();
+
+        /* ============================================================
+           CHART — TradingView Lightweight Charts
+           ============================================================ */
+        (function initChart() {
+            var container = document.getElementById('chart-container');
+            var tvEl = document.getElementById('tv-chart');
+
+            if (!hasData || baselineValues.length < 2) {
+                tvEl.style.display = 'flex';
+                tvEl.style.alignItems = 'center';
+                tvEl.style.justifyContent = 'center';
+                tvEl.style.color = '#94A3B8';
+                tvEl.style.fontSize = '14px';
+                tvEl.style.fontWeight = '500';
+                tvEl.textContent = 'No data to display';
+                return;
+            }
+
+            var chart = LightweightCharts.createChart(tvEl, {
+                width: container.clientWidth,
+                height: container.clientHeight,
+                layout: {
+                    background: { type: 'solid', color: '#FFFFFF' },
+                    textColor: '#7A8BA3',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 11,
+                },
+                grid: {
+                    vertLines: { visible: false },
+                    horzLines: { color: '#EDF2F7', style: LightweightCharts.LineStyle.Solid },
+                },
+                crosshair: {
+                    mode: LightweightCharts.CrosshairMode.Normal,
+                    vertLine: { color: 'rgba(11,31,59,0.15)', width: 1, style: LightweightCharts.LineStyle.Dashed, labelVisible: false },
+                    horzLine: { color: 'rgba(11,31,59,0.15)', width: 1, style: LightweightCharts.LineStyle.Dashed, labelVisible: false },
+                },
+                rightPriceScale: {
+                    borderColor: '#E3E8EF',
+                    scaleMargins: { top: 0.08, bottom: 0.08 },
+                },
+                timeScale: {
+                    borderColor: '#E3E8EF',
+                    timeVisible: false,
+                },
+                handleScroll: true,
+                handleScale: true,
+            });
+
+            var baselineSeries = chart.addLineSeries({
+                color: '#94A3B8',
+                lineWidth: 2,
+                lineStyle: LightweightCharts.LineStyle.Dashed,
+                crosshairMarkerVisible: true,
+                crosshairMarkerRadius: 4,
+                priceFormat: { type: 'custom', formatter: function (p) { return '$' + p.toFixed(2); } },
+                lastValueVisible: false,
+                priceLineVisible: false,
+            });
+
+            var sleeveSeries = chart.addLineSeries({
+                color: '#0B1F3B',
+                lineWidth: 2,
+                crosshairMarkerVisible: true,
+                crosshairMarkerRadius: 5,
+                priceFormat: { type: 'custom', formatter: function (p) { return '$' + p.toFixed(2); } },
+                lastValueVisible: false,
+                priceLineVisible: false,
+            });
+
+            var baselineData = simData.series.baseline.map(function (p) { return { time: p.date, value: p.value }; });
+            var sleeveData = simData.series.sleeve.map(function (p) { return { time: p.date, value: p.value }; });
+
+            baselineSeries.setData(baselineData);
+            sleeveSeries.setData(sleeveData);
+            chart.timeScale().fitContent();
+
+            /* ---- Tooltip ---- */
+            var tooltip = document.getElementById('tv-tooltip');
+            var ttDate = document.getElementById('tt-date');
+            var ttBaseline = document.getElementById('tt-baseline');
+            var ttSleeve = document.getElementById('tt-sleeve');
+
+            chart.subscribeCrosshairMove(function (param) {
+                if (!param.time || !param.point || param.point.x < 0 || param.point.y < 0) {
+                    tooltip.style.display = 'none';
+                    return;
+                }
+
+                var bData = param.seriesData.get(baselineSeries);
+                var sData = param.seriesData.get(sleeveSeries);
+                if (!bData && !sData) {
+                    tooltip.style.display = 'none';
+                    return;
+                }
+
+                var dateStr = typeof param.time === 'string' ? param.time : param.time.year + '-' + String(param.time.month).padStart(2, '0') + '-' + String(param.time.day).padStart(2, '0');
+                ttDate.textContent = dateStr;
+                ttBaseline.textContent = bData ? '$' + bData.value.toFixed(2) : '—';
+                ttSleeve.textContent = sData ? '$' + sData.value.toFixed(2) : '—';
+
+                tooltip.style.display = 'block';
+
+                var containerW = container.clientWidth;
+                var tooltipW = tooltip.offsetWidth;
+                var left = param.point.x + 20;
+                if (left + tooltipW > containerW) left = param.point.x - tooltipW - 20;
+                var top = param.point.y - tooltip.offsetHeight / 2;
+                top = Math.max(0, Math.min(top, container.clientHeight - tooltip.offsetHeight));
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+            });
+
+            /* ---- Responsive resize ---- */
+            new ResizeObserver(function (entries) {
+                var rect = entries[0].contentRect;
+                chart.applyOptions({ width: rect.width, height: rect.height });
+            }).observe(container);
+        })();
+    </script>
+
+</body>
+
+</html>

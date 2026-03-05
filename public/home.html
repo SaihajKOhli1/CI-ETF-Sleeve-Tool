@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="CI Portfolio Impact Simulator – Compare baseline portfolios with ETF and Private Markets sleeves. Educational simulation inspired by CI Global Asset Management.">
+    <title>Portfolio Impact Simulator | CI-Inspired Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ========== RESET & BASE ========== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --navy-primary: #0B1F3B;
+            --navy-secondary: #123A63;
+            --navy-light: #1A4A7A;
+            --light-bg: #F6F8FB;
+            --white: #FFFFFF;
+            --border-gray: #E3E8EF;
+            --text-muted: #7A8BA3;
+            --text-body: #3B4A5E;
+            --accent-blue: #3B82F6;
+            --accent-cyan: #06B6D4;
+            --accent-green: #10B981;
+            --accent-amber: #F59E0B;
+            --shadow-sm: 0 1px 3px rgba(11, 31, 59, 0.06);
+            --shadow-md: 0 4px 16px rgba(11, 31, 59, 0.10);
+            --shadow-lg: 0 12px 40px rgba(11, 31, 59, 0.14);
+            --shadow-xl: 0 20px 60px rgba(11, 31, 59, 0.18);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--light-bg);
+            color: var(--text-body);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(11, 31, 59, 0.92);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 0 32px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
+            color: var(--white);
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 12px rgba(59, 130, 246, 0.35);
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -0.3px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-badge {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* ========== HERO ========== */
+        .hero {
+            background: linear-gradient(175deg, var(--navy-primary) 0%, var(--navy-secondary) 55%, #1A4A7A 100%);
+            position: relative;
+            padding: 72px 32px 80px;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -20%;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Animated particles */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            animation: float-particle 8s infinite ease-in-out;
+        }
+
+        .particle:nth-child(1) {
+            width: 4px;
+            height: 4px;
+            background: rgba(59, 130, 246, 0.4);
+            top: 20%;
+            left: 15%;
+            animation-delay: 0s;
+        }
+
+        .particle:nth-child(2) {
+            width: 6px;
+            height: 6px;
+            background: rgba(6, 182, 212, 0.3);
+            top: 60%;
+            left: 75%;
+            animation-delay: 2s;
+        }
+
+        .particle:nth-child(3) {
+            width: 3px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.15);
+            top: 35%;
+            left: 55%;
+            animation-delay: 4s;
+        }
+
+        .particle:nth-child(4) {
+            width: 5px;
+            height: 5px;
+            background: rgba(59, 130, 246, 0.25);
+            top: 75%;
+            left: 30%;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-particle {
+
+            0%,
+            100% {
+                opacity: 0;
+                transform: translateY(0) scale(1);
+            }
+
+            25% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: translateY(-30px) scale(1.3);
+            }
+
+            75% {
+                opacity: 0.3;
+            }
+        }
+
+        .hero-inner {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(6, 182, 212, 0.15);
+            padding: 6px 16px;
+            border-radius: 24px;
+        }
+
+        .hero-eyebrow .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.4);
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(28px, 5vw, 44px);
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -1px;
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 .gradient-text {
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.55);
+            max-width: 560px;
+            margin: 0 auto;
+            line-height: 1.65;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            max-width: 960px;
+            margin: -40px auto 60px;
+            padding: 0 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ========== DESCRIPTION BOX ========== */
+        .description-box {
+            background: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-gray);
+            padding: 36px 40px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .description-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan), var(--accent-green));
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        .description-box h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--navy-primary);
+            margin-bottom: 14px;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .description-box h2 .icon-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .description-box p {
+            font-size: 14.5px;
+            color: var(--text-body);
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .description-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        .description-box .highlight {
+            color: var(--navy-secondary);
+            font-weight: 600;
+        }
+
+        .info-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .info-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--light-bg);
+            border: 1px solid var(--border-gray);
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        .info-chip svg {
+            width: 14px;
+            height: 14px;
+            stroke: var(--accent-blue);
+        }
+
+        /* ========== HOW IT WORKS ========== */
+        .how-it-works {
+            max-width: 960px;
+            margin: -20px auto 0;
+            padding: 0 24px 36px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .how-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .how-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        @media (max-width: 680px) {
+            .how-grid { grid-template-columns: 1fr; }
+        }
+
+        .how-card {
+            background: var(--white);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius);
+            padding: 26px 24px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition);
+        }
+
+        .how-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .how-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
+        }
+
+        .how-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .how-card:nth-child(1) .how-icon { background: rgba(59, 130, 246, 0.08); }
+        .how-card:nth-child(1) .how-icon svg { stroke: var(--accent-blue); }
+        .how-card:nth-child(2) .how-icon { background: rgba(6, 182, 212, 0.08); }
+        .how-card:nth-child(2) .how-icon svg { stroke: var(--accent-cyan); }
+        .how-card:nth-child(3) .how-icon { background: rgba(16, 185, 129, 0.08); }
+        .how-card:nth-child(3) .how-icon svg { stroke: var(--accent-green); }
+
+        .how-step {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .how-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--navy-primary);
+            letter-spacing: -0.2px;
+            margin-bottom: 6px;
+        }
+
+        .how-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+
+        /* ========== TILE GRID ========== */
+        .tile-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 680px) {
+            .tile-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========== TILE CARD ========== */
+        .tile-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-gray);
+            box-shadow: var(--shadow-sm);
+            padding: 28px;
+            cursor: pointer;
+            position: relative;
+            transition: all var(--transition);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tile-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--radius);
+            border: 2px solid transparent;
+            transition: border-color var(--transition);
+            pointer-events: none;
+        }
+
+        .tile-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .tile-card:hover::before {
+            border-color: var(--accent-blue);
+        }
+
+        .tile-card:active {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .tile-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            width: fit-content;
+        }
+
+        .tile-card[data-mode="etf"] .tile-tag {
+            color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .tile-card[data-mode="private"] .tile-tag {
+            color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .tile-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--navy-primary);
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+
+        .tile-card .tile-subtitle {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* ========== CHART PREVIEW ========== */
+        .chart-preview {
+            background: var(--light-bg);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            height: 140px;
+            display: flex;
+            align-items: flex-end;
+            overflow: hidden;
+        }
+
+        .chart-preview .chart-label {
+            position: absolute;
+            top: 12px;
+            left: 14px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .chart-preview .chart-value {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .tile-card[data-mode="etf"] .chart-value {
+            color: var(--accent-blue);
+        }
+
+        .tile-card[data-mode="private"] .chart-value {
+            color: var(--accent-green);
+        }
+
+        .chart-preview svg {
+            width: 100%;
+            height: 80px;
+        }
+
+        /* ========== TILE FOOTER ========== */
+        .tile-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 4px;
+        }
+
+        .tile-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--navy-primary);
+            transition: all var(--transition);
+        }
+
+        .tile-cta .arrow {
+            display: inline-block;
+            transition: transform var(--transition);
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .tile-card:hover .tile-cta {
+            color: var(--accent-blue);
+        }
+
+        .tile-card:hover .tile-cta .arrow {
+            transform: translateX(5px);
+        }
+
+        .btn-disclaimer {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--light-bg);
+            border: 1px solid var(--border-gray);
+            border-radius: 8px;
+            padding: 6px 14px;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+            z-index: 5;
+        }
+
+        .btn-disclaimer:hover {
+            background: var(--border-gray);
+            color: var(--text-body);
+        }
+
+        /* ========== MODAL ========== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(11, 31, 59, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 24px;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-xl);
+            max-width: 480px;
+            width: 100%;
+            padding: 36px;
+            position: relative;
+            transform: translateY(20px) scale(0.97);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: var(--light-bg);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--border-gray);
+            color: var(--navy-primary);
+        }
+
+        .modal h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--navy-primary);
+            margin-bottom: 6px;
+            letter-spacing: -0.2px;
+        }
+
+        .modal .modal-mode {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .modal ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .modal li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 14px;
+            color: var(--text-body);
+            line-height: 1.6;
+        }
+
+        .modal li .bullet-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .modal li:nth-child(1) .bullet-icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-amber);
+        }
+
+        .modal li:nth-child(2) .bullet-icon {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .modal li:nth-child(3) .bullet-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+        }
+
+        .modal .modal-footer {
+            margin-top: 24px;
+            text-align: right;
+        }
+
+        .modal .btn-understood {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--white);
+            background: linear-gradient(135deg, var(--navy-primary), var(--navy-secondary));
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 10px 24px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .modal .btn-understood:hover {
+            box-shadow: 0 4px 16px rgba(11, 31, 59, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* ========== FOOTER ========== */
+        .site-footer {
+            text-align: center;
+            padding: 36px 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-gray);
+            background: var(--white);
+            margin-top: 20px;
+        }
+
+        .site-footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 680px) {
+            .header {
+                padding: 0 18px;
+            }
+
+            .header-title {
+                font-size: 15px;
+            }
+
+            .hero {
+                padding: 48px 20px 64px;
+            }
+
+            .main-content {
+                padding: 0 16px;
+                margin-top: -28px;
+            }
+
+            .description-box {
+                padding: 24px;
+            }
+
+            .tile-card {
+                padding: 22px;
+            }
+
+            .chart-preview {
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ========== HEADER ========== -->
+    <header class="header" id="main-header">
+        <div class="header-left">
+            <div class="logo-mark">CI</div>
+            <span class="header-title">Portfolio Impact Simulator</span>
+        </div>
+        <div class="header-right">
+            <span class="header-badge">Prototype</span>
+        </div>
+    </header>
+
+    <!-- ========== HERO ========== -->
+    <section class="hero" id="hero">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="hero-inner">
+            <div class="hero-eyebrow">
+                <span class="dot"></span>
+                Inspired by CI Global Asset Management
+            </div>
+            <h1>Visualize <span class="gradient-text">Portfolio Impact</span> in&nbsp;Seconds</h1>
+            <p>Compare a baseline portfolio against adding a CI ETF sleeve or a Private Markets proxy sleeve—no sign-up,
+                no server storage, pure simulation.</p>
+        </div>
+    </section>
+
+    <!-- ========== HOW IT WORKS ========== -->
+    <section class="how-it-works">
+        <div class="how-section-title">How It Works</div>
+        <div class="how-grid">
+            <div class="how-card">
+                <div class="how-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                </div>
+                <div class="how-step">Step 1</div>
+                <div class="how-title">Upload or generate your portfolio</div>
+                <div class="how-desc">Paste holdings manually, upload a CSV, or describe your portfolio in plain English.</div>
+            </div>
+            <div class="how-card">
+                <div class="how-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                    </svg>
+                </div>
+                <div class="how-step">Step 2</div>
+                <div class="how-title">Add a CI ETF or Private Markets sleeve</div>
+                <div class="how-desc">Choose a public ETF sleeve or a private-markets proxy to blend into your allocation.</div>
+            </div>
+            <div class="how-card">
+                <div class="how-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                </div>
+                <div class="how-step">Step 3</div>
+                <div class="how-title">Analyze the impact instantly</div>
+                <div class="how-desc">See growth curves, risk metrics, and AI-generated insights comparing baseline vs sleeve.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content" id="main-content">
+
+        <!-- DESCRIPTION BOX -->
+        <div class="description-box" id="description-box">
+            <h2>
+                <span class="icon-circle">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 16v-4" />
+                        <path d="M12 8h.01" />
+                    </svg>
+                </span>
+                What Is This Tool?
+            </h2>
+            <p>
+                <span class="highlight">CI Global Asset Management</span> is a leading Canadian investment firm offering
+                a comprehensive range of public ETFs and private-market solutions designed to help investors build
+                diversified portfolios.
+            </p>
+            <p>
+                This simulator lets you compare a <span class="highlight">baseline portfolio</span> against two enhanced
+                scenarios: adding a <span class="highlight">CI ETF sleeve</span> using real historical pricing, or
+                blending in a <span class="highlight">Private Markets proxy sleeve</span> modeled on public proxies and
+                assumptions. The goal is to visualize how each adjustment might affect risk, return, and
+                diversification.
+            </p>
+            <p>
+                This is an <span class="highlight">educational simulation only</span>—it does not constitute investment
+                advice. No portfolio data is stored on any server; all calculations run locally in your browser.
+            </p>
+            <div class="info-chips">
+                <span class="info-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    No server storage
+                </span>
+                <span class="info-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                    </svg>
+                    Educational only
+                </span>
+                <span class="info-chip">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                    Live simulation
+                </span>
+            </div>
+        </div>
+
+        <!-- TILE GRID -->
+        <div class="tile-grid" id="tile-grid">
+
+            <!-- TILE 1 — ETF -->
+            <div class="tile-card" data-mode="etf" id="tile-etf" onclick="handleTileClick('etf', event)">
+                <span class="tile-tag">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                        <polyline points="17 6 23 6 23 12" />
+                    </svg>
+                    Public Markets
+                </span>
+                <h3>CI ETF Sleeve Simulator</h3>
+                <p class="tile-subtitle">Add a CI ETF allocation and see how historical returns would have shifted your
+                    portfolio's risk–return profile.</p>
+
+                <div class="chart-preview" id="chart-etf">
+                    <span class="chart-label">Cumulative Return</span>
+                    <span class="chart-value">+14.2%</span>
+                    <svg viewBox="0 0 300 80" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="grad-etf" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.25" />
+                                <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.02" />
+                            </linearGradient>
+                        </defs>
+                        <path
+                            d="M0,65 Q15,60 30,55 T60,48 T90,42 T120,45 T150,35 T180,30 T210,25 T240,20 T270,18 T300,12"
+                            fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" />
+                        <path
+                            d="M0,65 Q15,60 30,55 T60,48 T90,42 T120,45 T150,35 T180,30 T210,25 T240,20 T270,18 T300,12 L300,80 L0,80 Z"
+                            fill="url(#grad-etf)" />
+                        <!-- Baseline -->
+                        <path d="M0,62 Q30,58 60,56 T120,52 T180,50 T240,47 T300,44" fill="none" stroke="#E3E8EF"
+                            stroke-width="1.5" stroke-dasharray="4,4" stroke-linecap="round" />
+                    </svg>
+                </div>
+
+                <div class="tile-footer">
+                    <span class="tile-cta">Open tool <span class="arrow">→</span></span>
+                    <button class="btn-disclaimer" onclick="openModal('etf', event)"
+                        id="btn-disclaimer-etf">Disclaimer</button>
+                </div>
+            </div>
+
+            <!-- TILE 2 — PRIVATE -->
+            <div class="tile-card" data-mode="private" id="tile-private" onclick="handleTileClick('private', event)">
+                <span class="tile-tag">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                    </svg>
+                    Private Markets
+                </span>
+                <h3>CI Private Markets Sleeve Simulator</h3>
+                <p class="tile-subtitle">Blend a private-markets proxy into your allocation and explore the potential
+                    smoothing and diversification benefits.</p>
+
+                <div class="chart-preview" id="chart-private">
+                    <span class="chart-label">Cumulative Return</span>
+                    <span class="chart-value">+11.8%</span>
+                    <svg viewBox="0 0 300 80" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="grad-priv" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#10B981" stop-opacity="0.25" />
+                                <stop offset="100%" stop-color="#10B981" stop-opacity="0.02" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M0,60 Q20,58 40,54 T80,50 T120,46 T160,42 T200,36 T240,30 T280,26 T300,22" fill="none"
+                            stroke="#10B981" stroke-width="2.5" stroke-linecap="round" />
+                        <path
+                            d="M0,60 Q20,58 40,54 T80,50 T120,46 T160,42 T200,36 T240,30 T280,26 T300,22 L300,80 L0,80 Z"
+                            fill="url(#grad-priv)" />
+                        <!-- Baseline -->
+                        <path d="M0,58 Q40,55 80,53 T160,50 T240,47 T300,44" fill="none" stroke="#E3E8EF"
+                            stroke-width="1.5" stroke-dasharray="4,4" stroke-linecap="round" />
+                    </svg>
+                </div>
+
+                <div class="tile-footer">
+                    <span class="tile-cta">Open tool <span class="arrow">→</span></span>
+                    <button class="btn-disclaimer" onclick="openModal('private', event)"
+                        id="btn-disclaimer-private">Disclaimer</button>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ========== MODAL ========== -->
+    <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+        <div class="modal" id="modal-content">
+            <button class="modal-close" onclick="closeModal()" id="modal-close" aria-label="Close disclaimer">✕</button>
+            <h3>Important Disclaimer</h3>
+            <p class="modal-mode" id="modal-mode-label"></p>
+            <ul id="modal-bullets"></ul>
+            <div class="modal-footer">
+                <button class="btn-understood" onclick="closeModal()" id="btn-understood">I Understand</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="site-footer" id="site-footer">
+        <p>Portfolio Impact Simulator &middot; Educational prototype &middot; Not affiliated with CI Global Asset
+            Management</p>
+    </footer>
+
+    <!-- ========== JAVASCRIPT ========== -->
+    <script>
+        // — Disclaimer Data —
+        const disclaimers = {
+            etf: {
+                label: 'CI ETF Sleeve Simulator',
+                bullets: [
+                    { icon: '⚠️', text: 'This is an educational simulation only. It does not constitute investment advice.' },
+                    { icon: '🔒', text: 'No portfolio data is stored on any server. This prototype uses local browser storage only.' },
+                    { icon: '📊', text: 'ETF historical pricing is used for illustration. Past performance does not predict future returns.' }
+                ]
+            },
+            private: {
+                label: 'CI Private Markets Sleeve Simulator',
+                bullets: [
+                    { icon: '⚠️', text: 'This is an educational simulation only. It does not constitute investment advice.' },
+                    { icon: '🔒', text: 'No portfolio data is stored on any server. This prototype uses local browser storage only.' },
+                    { icon: '🏦', text: 'The private-markets sleeve uses public proxies and assumptions. Actual private-market returns may differ significantly.' }
+                ]
+            }
+        };
+
+        // — Tile Click —
+        function handleTileClick(mode, event) {
+            // Don't navigate if the disclaimer button was clicked
+            if (event.target.closest('.btn-disclaimer')) return;
+            window.location.href = 'upload.html?mode=' + mode;
+        }
+
+        // — Modal Open —
+        function openModal(mode, event) {
+            event.stopPropagation();
+            const data = disclaimers[mode];
+            document.getElementById('modal-mode-label').textContent = data.label;
+            const ul = document.getElementById('modal-bullets');
+            ul.innerHTML = '';
+            data.bullets.forEach(function (b) {
+                const li = document.createElement('li');
+                li.innerHTML =
+                    '<span class="bullet-icon">' + b.icon + '</span>' +
+                    '<span>' + b.text + '</span>';
+                ul.appendChild(li);
+            });
+            const overlay = document.getElementById('modal-overlay');
+            overlay.style.display = 'flex';
+            // Trigger reflow for animation
+            overlay.offsetHeight;
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // — Modal Close —
+        function closeModal() {
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.remove('active');
+            // Wait for animation
+            setTimeout(function () {
+                overlay.style.display = 'none';
+            }, 250);
+            document.body.style.overflow = '';
+        }
+
+        // — Overlay click —
+        function handleOverlayClick(event) {
+            if (event.target === document.getElementById('modal-overlay')) {
+                closeModal();
+            }
+        }
+
+        // — Keyboard close —
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+    </script>
+    <script src="/widgets/csv-widget.js" defer></script>
+
+</body>
+
+</html>
