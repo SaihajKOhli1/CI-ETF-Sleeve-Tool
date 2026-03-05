@@ -103,6 +103,109 @@ npm start
 2. **Add a CI ETF or Private Markets sleeve** — Choose a public ETF or private-markets proxy blend
 3. **Analyze the impact instantly** — View growth curves, risk metrics, AI insights, and market charts
 
+## Simulation Math
+
+This section documents the exact calculations the simulator performs.
+
+### Constants
+
+- **Sleeve weight** = 15% — the fraction of the portfolio replaced by the sleeve allocation
+
+### Step 1: Fetch & Align Prices
+
+Historical adjusted close prices are fetched from Tiingo for every ticker (holdings + sleeve). All tickers are aligned to **common trading dates** (dates where every ticker has a price). A minimum of 60 overlapping data points is required.
+
+### Step 2: Daily Returns
+
+For each ticker, daily returns are computed from the aligned adjusted close prices:
+
+```
+r[t] = price[t] / price[t-1] - 1
+```
+
+The first day's return is set to 0 (no prior price to compare).
+
+### Step 3: Baseline Portfolio Return
+
+The baseline is the user's original portfolio — a weighted sum of each holding's daily return:
+
+```
+baselineReturn[t] = Σ (weight_i × return_i[t])
+```
+
+For example, with 40% AAPL and 60% MSFT:
+
+```
+baselineReturn[t] = 0.4 × AAPL_return[t] + 0.6 × MSFT_return[t]
+```
+
+### Step 4: Sleeve Return
+
+The sleeve ticker(s) produce their own weighted daily return:
+
+- **ETF mode** (single ticker like SPY): the sleeve return is just that ETF's daily return
+- **Private mode** (proxy basket): a weighted blend of the resolved proxy tickers
+
+```
+sleeveTickerReturn[t] = Σ (proxy_weight_j × return_j[t])
+```
+
+### Step 5: Blended Portfolio Return
+
+The key formula — 15% of the portfolio is carved out and replaced with the sleeve:
+
+```
+blendedReturn[t] = 0.85 × baselineReturn[t] + 0.15 × sleeveTickerReturn[t]
+```
+
+This means every original holding is implicitly scaled down proportionally to make room for the sleeve.
+
+### Step 6: Growth Curves
+
+Both the baseline and blended return series are compounded into growth curves starting at $100:
+
+```
+growth[0] = 100
+growth[t] = growth[t-1] × (1 + return[t])
+```
+
+These two curves are what the chart displays.
+
+### Step 7: Portfolio Metrics
+
+Both curves are evaluated with four standard metrics:
+
+| Metric | Formula | Notes |
+|---|---|---|
+| **CAGR** | `(final / initial) ^ (1 / years) - 1` | Compound annual growth rate |
+| **Volatility** | `stddev(dailyReturns) × √252` | Annualized standard deviation |
+| **Max Drawdown** | `min(price[t] / peak[t] - 1)` | Largest peak-to-trough decline |
+| **Sharpe Ratio** | `(mean(dailyReturns) / stddev(dailyReturns)) × √252` | Risk-free rate = 0 for MVP |
+
+### Worked Example
+
+Portfolio: **50% AAPL + 50% MSFT**, sleeve: **SPY at 15%**
+
+| | Formula |
+|---|---|
+| Baseline day return | `0.5 × AAPL_r + 0.5 × MSFT_r` |
+| With-sleeve day return | `0.85 × (0.5 × AAPL_r + 0.5 × MSFT_r) + 0.15 × SPY_r` |
+
+The chart then shows both growth curves from $100 so you can visually compare how adding the sleeve would have changed the portfolio's historical trajectory.
+
+### Private Markets Proxy Basket
+
+When mode is `private`, the sleeve uses a predefined proxy basket with fallbacks:
+
+| Proxy Ticker | Fallback | Represents |
+|---|---|---|
+| PSP | IVW | Private equity exposure |
+| BKLN | JNK | Private credit / loans |
+| IGF | — | Infrastructure |
+| VNQ | — | Real estate |
+
+If a primary ticker fails to fetch, its fallback is tried. If both fail, the ticker is excluded and remaining weights are renormalized. Warnings are included in the response.
+
 ## Disclaimer
 
 This is an **educational simulation only**. It does not constitute investment advice. No portfolio data is stored on any server. Not affiliated with CI Global Asset Management.
